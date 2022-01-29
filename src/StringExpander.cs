@@ -128,7 +128,7 @@ namespace StringExpansion
                                 offset++; // don't skip over the last parenthesis
                         }
 
-                        if (level > 0)
+                        if (level != 0)
                             throw new Exception("The number of parentheses does not match.");
 
                         varName = source[varOffset..offset].Trim();
