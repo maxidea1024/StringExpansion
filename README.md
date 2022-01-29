@@ -19,18 +19,87 @@ Test("Simple", "%var1=%val1", options);
 Test("Alternatives", "%(var4:%(var3:%var2))", options);
 ```
 
-`IVarProvider`를 잘 황용하면 다양한 기능을 손쉽게 확장할 수 있습니다. 예를들면, 환경 변수 또는 시스템 경로등을 제공할 수 있으므로, `.config` 파일등에 사용될 수 있습니다.
+---
 
-저는 현재 boilerplate 코드 생성 도구에 사용하고 있습니다.
-제가 사용하고 있는 코드의 한 조각입니다.
+`IVarProvider`를 잘 활용하면 다양한 기능을 손쉽게 확장할 수 있습니다. 예를들면, 환경 변수 또는 시스템 경로등을 제공할 수 있으므로, `.config` 파일등에 사용될 수 있습니다.
 
-#### 타입스크림트용 코드를 생성하는 곳에서 사용되고 있는 코드 샘플
+- 환경 변수를 값으로 제공
+```csharp
+using System;
+
+namespace StringExpansion.VarProviders
+{
+    public class EnvironmentVarProvider : IVarProvider
+    {
+        public static readonly EnvironmentVarProvider DefaultInstance = new EnvironmentVarProvider();
+        
+        public string GetVar(string name)
+        {
+            return Environment.GetEnvironmentVariable(name);
+        }
+    }
+}
+```
+
+- 시스템 경로를 제공
+```csharp
+using System;
+using System.IO;
+
+namespace StringExpansion.VarProviders
+{
+    public class PathVarProvider : IVarProvider
+    {
+        public static readonly PathVarProvider DefaultInstance = new PathVarProvider();
+        
+        public string GetVar(string name)
+        {
+            string path = null;
+            
+            if (name == "home")
+            {
+                path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            }
+            else if (name == "module")
+            {
+                path = AppContext.BaseDirectory;
+            }
+
+            var envVar = Environment.GetEnvironmentVariable(name);
+            if (envVar != null)
+                path = envVar;
+
+            if (path != null)
+                return MakeNonPathTerm(path);
+
+            return null;
+        }
+
+        private string MakeNonPathTerm(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return path;
+
+            if (path.EndsWith(Path.DirectorySeparatorChar))
+                return path.Substring(0, path.Length - 1);
+
+            return path;
+        }
+    }
+}
+```
+
+---
+
+저는 현재 boilerplate 코드 생성 도구에 사용하고 있습니다. 제가 사용하고 있는 코드의 한 조각입니다.
+
+- 타입스크림트용 코드를 생성하는 곳에서 사용되고 있는 코드 샘플
 
 ```csharp
 ts.Verbatim(@"
 
     // Indexing by '%prop_name'
-    public get recordsBy%(pascal_name)(): Map<%(field_type), %(record_type)> { return this._recordsBy%pascal_name }
+    public get recordsBy%pascal_name(): Map<%field_type, %record_type> { return this._recordsBy%pascal_name }
     private _recordsBy%pascal_name: Map<%field_type, %record_type> = new Map<%field_type, %record_type>()
 
     /** Gets the value associated with the specified key. throw Error if not found. */
