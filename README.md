@@ -3,20 +3,26 @@
 
 `makefile`이나 `rpm spec` 파일을 사용하다보면, `${name}`, `%(name)` 과 같이 환경변수나 약속한 값들로 치환하는 것을 볼수 있습니다. 이러한 동작을 수행하는 간단한 코드 조각입니다.
 
-```csharp
-var options = new StringExpansionOptions
-{
-    VarProvider = new DummyVarProvider()
-};
+- makefile에서 사용하는 예
 
-// 빈문자열 대입.
-Test("Empty", "", options);
+```makefile
+#------
+# Name of program or plugin
+#------
+TARGET_NAME = myproj
 
-// var1, val1 값을 가져와 치환.
-Test("Simple", "%var1=%val1", options);
+ifeq ($(TARGET_TYPE),exe)
+  TARGET=$(TARGET_NAME)$(EXE)
+else
+  TARGET=$(TARGET_NAME)$(DLL)
+endif
 
-// var4가 없으면 var3을 사용하고 그것도 없으면 var2를 사용.
-Test("Alternatives", "%(var4:%(var3:%var2))", options);
+#------
+# Location of sources and object files
+#------
+SRC=$(wildcard *.cpp)
+OBJS=$(addsuffix .o, $(basename $(SRC)))
+OUT=.
 ```
 
 ---
