@@ -24,7 +24,7 @@ Test("Alternatives", "%(var4:%(var3:%var2))", options);
 저는 현재 boilerplate 코드 생성 도구에 사용하고 있습니다.
 제가 사용하고 있는 코드의 한 조각입니다.
 
-#### 타입스크림트용 코드 생성 예제
+#### 타입스크림트용 코드를 생성하는 곳에서 사용되고 있는 코드 샘플
 
 ```csharp
 ts.Verbatim(@"
